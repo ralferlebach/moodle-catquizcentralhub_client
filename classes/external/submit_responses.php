@@ -25,7 +25,6 @@
 namespace catquizcentralhub_client\external;
 
 use catquizcentralhub_client\client\response_submitter;
-
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;

@@ -18,7 +18,6 @@ namespace catquizcentralhub_client\client;
 
 use catquizcentralhub_client\event\responses_submitted;
 use local_catquiz\hash\question_hasher;
-
 use context_system;
 use curl;
 use local_catquiz\catquiz;
