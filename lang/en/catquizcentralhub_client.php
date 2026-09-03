@@ -45,6 +45,7 @@ $string['responses_submitted'] = 'New responses were shared';
 $string['responses_submitted_desc'] = 'New responses were shared with central compute instance {$a->centralhost}. {$a->added} new '
     . 'responses were added, {$a->skipped} were skipped and {$a->errors} errors occurred';
 $string['scalehasnolabel'] = 'Scale has no label';
+$string['scalenotallowed'] = 'The scale "{$a}" is not configured for synchronisation.';
 $string['scalenotfound'] = 'Scale not found';
 $string['skipsslverification'] = 'Skip SSL verification';
 $string['skipsslverificationdesc'] = 'Disable SSL certificate verification when connecting to the central hub. Only enable this for development or testing environments.';
@@ -52,4 +53,5 @@ $string['submission_error'] = 'Error submitting responses: {$a}';
 $string['submission_success'] = '{$a->total} responses successfully submitted. {$a->added} new responses were added and {$a->skipped} were skipped.';
 $string['submit_responses'] = 'Submit responses to central instance';
 $string['submitresponsescheduled'] = 'Submit responses to central hub (scheduled)';
+$string['syncdisabled'] = 'Synchronisation with the central hub is disabled.';
 $string['unknownerror'] = 'An unknown error occurred';

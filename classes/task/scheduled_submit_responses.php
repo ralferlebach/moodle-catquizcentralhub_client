@@ -19,6 +19,7 @@ namespace catquizcentralhub_client\task;
 use catquizcentralhub_client\client\response_submitter;
 use core\task\scheduled_task;
 use moodle_exception;
+use catquizcentralhub_client\local\sync_policy;
 
 /**
  * Scheduled task to submit CAT quiz responses to the central hub.
@@ -43,14 +44,27 @@ class scheduled_submit_responses extends scheduled_task {
      * @return void
      */
     public function execute() {
-        $config = get_config('catquizcentralhub_client');
-        if (empty($config->central_host) || empty($config->central_token)) {
-            throw new moodle_exception('nocentralconfig', 'catquizcentralhub_client');
+        // Issue #65: the switch is checked before anything else. Previously the
+        // credentials were validated first, so an instance with synchronisation off
+        // and no hub configured raised a task failure on every run - the reported
+        // faildelay had grown to 86400 seconds. Switched off means there is nothing
+        // to do, and nothing to do is a success.
+        if (!sync_policy::is_enabled()) {
+            mtrace('Central hub synchronisation is disabled - nothing to do.');
+            return;
         }
 
-        if (!$labels = array_filter(explode("\n", $config->node_scale_labels ?? ''))) {
-            mtrace('No active scales found - nothing to do.');
+        $labels = sync_policy::get_allowed_scale_labels();
+        if (empty($labels)) {
+            mtrace('No scales configured for central hub synchronisation.');
             return;
+        }
+
+        // Only now is missing configuration a genuine error: synchronisation is on
+        // and scales are configured, but the hub cannot be reached.
+        $config = get_config('catquizcentralhub_client');
+        if (!sync_policy::has_credentials()) {
+            throw new moodle_exception('nocentralconfig', 'catquizcentralhub_client');
         }
 
         foreach ($labels as $label) {

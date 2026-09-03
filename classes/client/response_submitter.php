@@ -23,6 +23,7 @@ use curl;
 use local_catquiz\catquiz;
 use local_catquiz\catscale;
 use Throwable;
+use catquizcentralhub_client\local\sync_policy;
 
 /**
  * Handles submission of responses to the central hub.
@@ -45,6 +46,12 @@ class response_submitter {
     private int $contextid;
 
     /**
+     * Label of the scale being synchronised, kept for the allowlist check.
+     * @var string
+     */
+    private string $scalelabel;
+
+    /**
      * Create a new response submitter.
      *
      * @param string $centralhost The central hub URL
@@ -56,6 +63,7 @@ class response_submitter {
         global $DB;
         $this->centralhost = rtrim($centralhost, '/');
         $this->token = $token;
+        $this->scalelabel = $scalelabel;
         $this->scaleid = $DB->get_record('local_catquiz_catscales', ['label' => $scalelabel], 'id')->id;
         $this->contextid = $contextid ?? catscale::return_catscale_object($this->scaleid)->contextid;
     }
@@ -67,6 +75,29 @@ class response_submitter {
      */
     public function submit_responses() {
         global $CFG, $USER;
+
+        // Issue #65: the lowest layer that actually sends. Every caller above could
+        // forget the check - and every caller did - so the guard belongs here as
+        // well, not only in the task that happens to call it today.
+        //
+        // No data is read before this point: with synchronisation switched off there
+        // is nothing to aggregate, let alone to transmit.
+        if (!sync_policy::is_enabled()) {
+            return (object) [
+                'success' => true,
+                'message' => get_string('syncdisabled', 'catquizcentralhub_client'),
+            ];
+        }
+
+        // The scale allowlist is a server-side rule, not a hint: the setting says
+        // only these scales are transmitted, so a scale outside it is refused even
+        // when a caller asks for it explicitly.
+        if (!sync_policy::is_scale_allowed($this->scalelabel)) {
+            return (object) [
+                'success' => false,
+                'message' => get_string('scalenotallowed', 'catquizcentralhub_client', $this->scalelabel),
+            ];
+        }
 
         try {
             $responses = $this->get_response_data();

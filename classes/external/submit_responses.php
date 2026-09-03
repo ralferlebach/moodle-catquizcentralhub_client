@@ -31,6 +31,7 @@ use core_external\external_single_structure;
 use core_external\external_value;
 use moodle_exception;
 use Throwable;
+use catquizcentralhub_client\local\sync_policy;
 
 /**
  * External API class for submitting responses to the central hub.
@@ -67,6 +68,17 @@ class submit_responses extends external_api {
             global $DB;
 
             $params = self::validate_parameters(self::execute_parameters(), ['scaleid' => $scaleid]);
+
+            // Issue #65: a data-egress endpoint enforces its own permission. The entry in
+            // db/services.php is advisory metadata and is not checked at run time, so it
+            // is no protection on its own.
+            $context = \context_system::instance();
+            self::validate_context($context);
+            require_capability('moodle/site:config', $context);
+
+            // The switch is a kill-switch, not a display setting: with synchronisation
+            // off nothing may leave this instance, whatever a caller asks for.
+            sync_policy::require_enabled();
             if (!$label = $DB->get_field('local_catquiz_catscales', 'label', ['id' => $scaleid], MUST_EXIST)) {
                 return [
                     'message' => get_string(

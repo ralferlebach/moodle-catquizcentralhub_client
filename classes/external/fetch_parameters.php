@@ -29,6 +29,7 @@ use local_catquiz\catquiz;
 use local_catquiz\catscale;
 use local_catquiz\data\dataapi;
 use local_catquiz\local\model\model_item_param;
+use catquizcentralhub_client\local\sync_policy;
 
 /**
  * External service for fetching calculated item parameters from the central hub.
@@ -89,6 +90,12 @@ class fetch_parameters extends external_api {
         $params = self::validate_parameters(self::execute_parameters(), [
             'scaleid' => $scaleid,
         ]);
+
+        // Issue #65: an endpoint that contacts an external host enforces its own
+        // permission; the entry in db/services.php is metadata, not a runtime check.
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('moodle/site:config', $context);
 
         $centralurl = get_config('catquizcentralhub_client', 'central_host') ?? '';
         $wstoken = get_config('catquizcentralhub_client', 'central_token') ?? '';
@@ -166,6 +173,13 @@ class fetch_parameters extends external_api {
             'moodlewsrestformat' => 'json',
             'scalelabel' => $scale->label,
         ];
+
+        // Issue #65: the second of the two places that actually reach outside. With
+        // synchronisation switched off no request may leave the instance, even though
+        // host and token are still stored - keeping the credentials is not consent to
+        // use them.
+        sync_policy::require_enabled();
+        sync_policy::require_scale_allowed((string) $scale->label);
 
         $sslverify = !get_config('catquizcentralhub_client', 'skip_ssl_verification');
         $curl = new \curl();

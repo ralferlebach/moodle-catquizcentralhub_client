@@ -37,6 +37,12 @@ final class scheduled_submit_responses_test extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
+
+        // Issue #65: the switch is a server-side gate now. These tests ran with it
+        // off and still expected the service to work - which is exactly the state
+        // the issue calls out as written into the tests. Enabling it here makes the
+        // positive path explicit instead of implicit.
+        set_config('enable_sync_as_node', 1, 'catquizcentralhub_client');
     }
 
     public function test_get_name_returns_non_empty_string(): void {
@@ -46,12 +52,20 @@ final class scheduled_submit_responses_test extends advanced_testcase {
     }
 
     public function test_execute_throws_moodle_exception_when_no_central_host(): void {
+        // Issue #65: missing credentials is only an error once synchronisation is on
+        // AND scales are configured. Without scales there is nothing to send, which is
+        // a no-op - that reordering is what stopped the endless task failures.
+        set_config('node_scale_labels', "K1\n", 'catquizcentralhub_client');
         $this->expectException(moodle_exception::class);
         $task = new scheduled_submit_responses();
         $task->execute();
     }
 
     public function test_execute_throws_when_token_missing_but_host_set(): void {
+        // Issue #65: missing credentials is only an error once synchronisation is on
+        // AND scales are configured. Without scales there is nothing to send, which is
+        // a no-op - that reordering is what stopped the endless task failures.
+        set_config('node_scale_labels', "K1\n", 'catquizcentralhub_client');
         set_config('central_host', 'https://hub.example.com', 'catquizcentralhub_client');
         $this->expectException(moodle_exception::class);
         $task = new scheduled_submit_responses();
