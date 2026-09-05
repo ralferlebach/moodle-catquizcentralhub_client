@@ -82,7 +82,12 @@ jobs:
           moodle-plugin-ci add-plugin --branch v-3.0 ralferlebach/moodle-mod_adaptivequiz
           moodle-plugin-ci add-plugin --branch master branchup/moodle-filter_shortcodes
           moodle-plugin-ci add-plugin --branch v-3.0 ralferlebach/moodle-adaptivequizcatmodel_catquiz
-          moodle-plugin-ci add-plugin ralferlebach/moodle-local_catquiz
+          # The parent is pinned in version.php, so the branch fetched here has to be
+          # at least that version. main lags behind while a release line is in
+          # progress; the development branch is what the pin is written against.
+          # Getting this wrong fails at install time with a dependency error, which is
+          # the intended behaviour of the pin rather than a workflow defect.
+          moodle-plugin-ci add-plugin --branch improve-performance-testadministration ralferlebach/moodle-local_catquiz
 
           # add-plugin only stages the plugins; install copies them into the tree.
           # The parent's clone brings the empty submodule directories with it, and

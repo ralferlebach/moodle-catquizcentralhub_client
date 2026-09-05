@@ -24,6 +24,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026090217;
-$plugin->requires  = 2026090217;
+$plugin->version   = 2026090500;
+$plugin->requires  = 2022041900;
 $plugin->component = 'catquizcentralhub_client';
+
+// Pinned to the parent plugin: these are subplugins of local_catquiz and use its
+// classes directly. Without the pin Moodle installs them against any version of the
+// parent, including one that predates the interfaces they rely on - and the failure
+// then appears at run time rather than at install time.
+$plugin->dependencies = [
+    'local_catquiz' => 2026090218,
+];
