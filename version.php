@@ -32,6 +32,10 @@ $plugin->component = 'catquizcentralhub_client';
 // classes directly. Without the pin Moodle installs them against any version of the
 // parent, including one that predates the interfaces they rely on - and the failure
 // then appears at run time rather than at install time.
+//
+// The pin follows the released parent on main, not the version currently being
+// worked on. Pinning to an unreleased version would make these plugins
+// uninstallable everywhere except on the development branch.
 $plugin->dependencies = [
-    'local_catquiz' => 2026090218,
+    'local_catquiz' => 2026083025,
 ];

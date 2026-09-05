@@ -74,6 +74,13 @@ jobs:
           echo "$(cd ci/bin && pwd)" >> $GITHUB_PATH
           echo "$(cd ci/vendor/bin && pwd)" >> $GITHUB_PATH
 
+          # Moodle's PHPUnit bootstrap refuses to run without en_AU.UTF-8, which the
+          # runner image does not ship. Without this the init step aborts with
+          # "Required locale 'en_AU.UTF-8' is not installed" - and the message reads
+          # like a missing language pack rather than a missing system locale.
+          # The parent plugin's workflow does the same thing at the same point.
+          sudo locale-gen en_AU.UTF-8
+
       - name: Install Moodle and the parent plugin
         run: |
           # The parent plugin and its own hard dependencies. The subplugin under test
@@ -82,12 +89,11 @@ jobs:
           moodle-plugin-ci add-plugin --branch v-3.0 ralferlebach/moodle-mod_adaptivequiz
           moodle-plugin-ci add-plugin --branch master branchup/moodle-filter_shortcodes
           moodle-plugin-ci add-plugin --branch v-3.0 ralferlebach/moodle-adaptivequizcatmodel_catquiz
-          # The parent is pinned in version.php, so the branch fetched here has to be
-          # at least that version. main lags behind while a release line is in
-          # progress; the development branch is what the pin is written against.
-          # Getting this wrong fails at install time with a dependency error, which is
-          # the intended behaviour of the pin rather than a workflow defect.
-          moodle-plugin-ci add-plugin --branch improve-performance-testadministration ralferlebach/moodle-local_catquiz
+          # The parent is pinned in version.php to the version on main, so main is
+          # what is fetched here. The two have to be raised together: a pin ahead of
+          # main makes these plugins uninstallable, and the install step then fails
+          # with a dependency error - which is the pin working, not a workflow defect.
+          moodle-plugin-ci add-plugin --branch main ralferlebach/moodle-local_catquiz
 
           # add-plugin only stages the plugins; install copies them into the tree.
           # The parent's clone brings the empty submodule directories with it, and
