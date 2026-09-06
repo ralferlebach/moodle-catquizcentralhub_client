@@ -29,7 +29,7 @@ use moodle_exception;
 /**
  * Decides whether this instance may send anything to a central hub.
  *
- * Issue #65: the setting enable_sync_as_node governed two things - which further
+ * The setting enable_sync_as_node governed two things - which further
  * settings were visible, and which buttons the template rendered. The scheduled task,
  * the external functions and the HTTP layer never read it. Switching synchronisation
  * off therefore hid the controls while leaving every execution path intact: with
@@ -120,5 +120,31 @@ class sync_policy {
         $config = get_config('catquizcentralhub_client');
 
         return !empty($config->central_host) && !empty($config->central_token);
+    }
+    /**
+     * Throws unless the scale with this id is covered by the allowlist.
+     *
+     * The endpoints receive a scale id, not a label, while the setting is a list of
+     * labels. Resolving it here keeps that translation in one place: an endpoint that
+     * did it for itself would be free to skip it, which is how the allowlist came to
+     * be enforced on some paths and not on others.
+     *
+     * A scale that cannot be resolved is refused rather than allowed - an unknown
+     * scale is not a released one.
+     *
+     * @param int $scaleid
+     * @throws moodle_exception
+     * @return void
+     */
+    public static function require_scale_id_allowed(int $scaleid): void {
+        global $DB;
+
+        $label = $DB->get_field('local_catquiz_catscales', 'label', ['id' => $scaleid]);
+
+        if ($label === false) {
+            throw new moodle_exception('scalenotallowed', 'catquizcentralhub_client', '', $scaleid);
+        }
+
+        self::require_scale_allowed((string) $label);
     }
 }

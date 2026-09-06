@@ -59,6 +59,11 @@ class submit_responses extends external_api {
      * @return array Status message indicating the result of the submission
      */
     public static function execute($scaleid) {
+        // The scale allowlist is a server-side rule. It was enforced in
+        // fetch_parameters but not here, so the same setting bound one direction of
+        // the exchange and not the other.
+        sync_policy::require_scale_id_allowed((int) $scaleid);
+
         try {
             $config = get_config('catquizcentralhub_client');
             if (empty($config->central_host) || empty($config->central_token)) {
@@ -69,7 +74,7 @@ class submit_responses extends external_api {
 
             $params = self::validate_parameters(self::execute_parameters(), ['scaleid' => $scaleid]);
 
-            // Issue #65: a data-egress endpoint enforces its own permission. The entry in
+            // A data-egress endpoint enforces its own permission. The entry in
             // db/services.php is advisory metadata and is not checked at run time, so it
             // is no protection on its own.
             $context = \context_system::instance();

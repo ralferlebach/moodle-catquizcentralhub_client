@@ -91,7 +91,7 @@ class fetch_parameters extends external_api {
             'scaleid' => $scaleid,
         ]);
 
-        // Issue #65: an endpoint that contacts an external host enforces its own
+        // An endpoint that contacts an external host enforces its own
         // permission; the entry in db/services.php is metadata, not a runtime check.
         $context = \context_system::instance();
         self::validate_context($context);
@@ -174,7 +174,7 @@ class fetch_parameters extends external_api {
             'scalelabel' => $scale->label,
         ];
 
-        // Issue #65: the second of the two places that actually reach outside. With
+        // The second of the two places that actually reach outside. With
         // synchronisation switched off no request may leave the instance, even though
         // host and token are still stored - keeping the credentials is not consent to
         // use them.

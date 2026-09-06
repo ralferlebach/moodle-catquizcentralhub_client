@@ -44,7 +44,7 @@ class scheduled_submit_responses extends scheduled_task {
      * @return void
      */
     public function execute() {
-        // Issue #65: the switch is checked before anything else. Previously the
+        // The switch is checked before anything else. Previously the
         // credentials were validated first, so an instance with synchronisation off
         // and no hub configured raised a task failure on every run - the reported
         // faildelay had grown to 86400 seconds. Switched off means there is nothing

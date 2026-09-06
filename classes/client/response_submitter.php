@@ -76,7 +76,7 @@ class response_submitter {
     public function submit_responses() {
         global $CFG, $USER;
 
-        // Issue #65: the lowest layer that actually sends. Every caller above could
+        // The lowest layer that actually sends. Every caller above could
         // forget the check - and every caller did - so the guard belongs here as
         // well, not only in the task that happens to call it today.
         //
